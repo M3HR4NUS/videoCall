@@ -4,6 +4,18 @@ const { RTCPeerConnection, RTCSessionDescription } = window;
 
 const peerConnection = new RTCPeerConnection();
 
+
+async function calluser(socketId){
+    const offer=await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(new RTCSessionDescription(offer));
+
+
+    socket.emit("call-user",{
+        offer,
+        to: socketId
+    })
+}
+
 socket.on("update-user-list", ({ users }) => {
     const activeUserContainer = document.getElementById(
         "active-user-container"
@@ -23,11 +35,25 @@ socket.on("update-user-list", ({ users }) => {
             username.innerHTML = `کاربر : ${socketId}`;
 
             userContainer.appendChild(username);
+            userContainer.addEventListener('click',()=>{
+                userContainer.setAttribute("class","active-user active-user--selected");
+                const tallkinginfo=document.getElementById('talking-with-info');
+                tallkinginfo.innerHTML=`تماس با کاربر : ${socketId}`;
 
+                calluser(socketId)
+            })
             activeUserContainer.appendChild(userContainer);
         }
     });
 });
+
+socket.on("remove-user",({socketId})=>{
+    const user=document.getElementById(socketId);
+
+    if(user){
+        user.remove();
+    }
+})
 
 navigator.getUserMedia(
     { video: true, audio: true },
@@ -42,3 +68,4 @@ navigator.getUserMedia(
         console.log(error.message);
     }
 );
+ 

@@ -30,6 +30,13 @@ io.on("connection", (socket) => {
         socket.broadcast.emit("update-user-list", { users: [socket.id] });
     }
 
+    socket.on("call-user",data =>{
+        socket.to(data.to).emit("call",{
+            offer:data.offer,
+            socket:socket.id,
+        })
+    })
+
     socket.on("disconnect", () => {
         activeUsers = activeUsers.filter(
             (socketExist) => socketExist !== socket.id
