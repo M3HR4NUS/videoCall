@@ -14,8 +14,8 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background-color: #f9fafc;
-    color: #595354;
-    direction: rtl;
+    color: #2c2c2c;
+  
 }
 
 .content-container {
@@ -27,15 +27,15 @@ body {
 }
 
 .active-users-panel {
-    width: 300px;
+    width: 250px;
     height: 100%;
     border-right: 1px solid #cddfe7;
 }
 
 .panel-title {
     margin: 10px 0 0 0;
-    padding-right: 30px;
-    text-align: right;
+    padding-left: 30px;
+    text-align: left;
     font-weight: 500;
     font-size: 18px;
     border-bottom: 1px solid #cddfe7;
@@ -50,13 +50,14 @@ body {
 }
 
 .active-user:hover {
-    background-color: #e8e9eb;
+    background-color: #839ed4;
+    color: #fdfdfd;
     transition: background-color 0.5s ease;
 }
 
 .active-user--selected {
     background-color: #fff;
-    border-right: 5px solid #65e57a;
+    border-left: 5px solid #65e57a;
     font-weight: 500;
     transition: all 0.5s ease;
 }
@@ -81,10 +82,14 @@ body {
 
 .local-video {
     position: absolute;
-    border: 1px solid #cddfe7;
-    bottom: 40px;
-    left: 40px;
-    box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
+    border: 2px solid #839ed4;
+    bottom: 20px;
+    right: 40px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
     width: 350px;
+    -webkit-border-radius: 8px;
+    -moz-border-radius: 8px;
+    -ms-border-radius: 8px;
+    -o-border-radius: 8px;
 }

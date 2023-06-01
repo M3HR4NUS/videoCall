@@ -1,19 +1,20 @@
 const socket = io("localhost:3000");
 
+let isAlreadyCalling = false;
+let getCalled = false;
+
 const { RTCPeerConnection, RTCSessionDescription } = window;
 
 const peerConnection = new RTCPeerConnection();
 
-
-async function calluser(socketId){
-    const offer=await peerConnection.createOffer();
+async function callUser(socketId) {
+    const offer = await peerConnection.createOffer();
     await peerConnection.setLocalDescription(new RTCSessionDescription(offer));
 
-
-    socket.emit("call-user",{
+    socket.emit("call-user", {
         offer,
-        to: socketId
-    })
+        to: socketId,
+    });
 }
 
 socket.on("update-user-list", ({ users }) => {
@@ -32,28 +33,88 @@ socket.on("update-user-list", ({ users }) => {
             userContainer.setAttribute("class", "active-user");
             userContainer.setAttribute("id", socketId);
             username.setAttribute("class", "username");
-            username.innerHTML = `کاربر : ${socketId}`;
+            username.innerHTML = `user : ${socketId}`;
 
             userContainer.appendChild(username);
-            userContainer.addEventListener('click',()=>{
-                userContainer.setAttribute("class","active-user active-user--selected");
-                const tallkinginfo=document.getElementById('talking-with-info');
-                tallkinginfo.innerHTML=`تماس با کاربر : ${socketId}`;
 
-                calluser(socketId)
-            })
+            userContainer.addEventListener("click", () => {
+                userContainer.setAttribute(
+                    "class",
+                    "active-user active-user--selected"
+                );
+                const talkingWithInfo =
+                    document.getElementById("talking-with-info");
+                talkingWithInfo.innerHTML = `call by user${socketId}`;
+                callUser(socketId);
+            });
+
             activeUserContainer.appendChild(userContainer);
         }
     });
 });
 
-socket.on("remove-user",({socketId})=>{
-    const user=document.getElementById(socketId);
+socket.on("remove-user", ({ socketId }) => {
+    const user = document.getElementById(socketId);
 
-    if(user){
+    if (user) {
         user.remove();
     }
-})
+});
+
+socket.on("call-made", async (data) => {
+    if (getCalled) {
+        const confirmed = confirm(
+            `user with by${data.socket} calling you .acsept? `
+        );
+
+        if (!confirmed) {
+            socket.emit("reject-call", {
+                from: data.socket,
+            });
+
+            return;
+        }
+    }
+
+    await peerConnection.setRemoteDescription(
+        new RTCSessionDescription(data.offer)
+    );
+
+    const answer = await peerConnection.createAnswer();
+
+    await peerConnection.setLocalDescription(new RTCSessionDescription(answer));
+
+    socket.emit("make-answer", {
+        answer,
+        to: data.socket,
+    });
+
+    getCalled = true;
+});
+
+socket.on("answer-made", async (data) => {
+    await peerConnection.setRemoteDescription(
+        new RTCSessionDescription(data.answer)
+    );
+
+    if (!isAlreadyCalling) {
+        callUser(data.socket);
+        isAlreadyCalling = true;
+    }
+});
+
+socket.on("call-rejected", (data) => {
+    alert(`call user with by id:${data.socket} `);
+    //Unselect active user
+});
+
+peerConnection.ontrack = function ({ streams: [stream] }) {
+    const remoteVideo = document.getElementById("remote-video");
+
+    if (remoteVideo) {
+        remoteVideo.srcObject = stream;
+    }
+};
 
 navigator.getUserMedia(
     { video: true, audio: true },
@@ -63,9 +124,12 @@ navigator.getUserMedia(
         if (localVideo) {
             localVideo.srcObject = stream;
         }
+
+        stream
+            .getTracks()
+            .forEach((track) => peerConnection.addTrack(track, stream));
     },
     (error) => {
         console.log(error.message);
     }
 );
- 
