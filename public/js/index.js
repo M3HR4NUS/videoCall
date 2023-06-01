@@ -1,7 +1,11 @@
 const socket = io("localhost:3000");
 
+
 let isAlreadyCalling = false;
 let getCalled = false;
+
+
+
 
 const { RTCPeerConnection, RTCSessionDescription } = window;
 
@@ -17,40 +21,56 @@ async function callUser(socketId) {
     });
 }
 
-socket.on("update-user-list", ({ users }) => {
+ function unselecteed(){
+    const alredyselected=document.querySelectorAll(".active-user .active-user--selected");
+
+    alredyselected.forEach(e=>{
+        e.setAttribute("class","active-user");
+    })
+ }
+
+ function createuser(socketId){
+    const userContainer = document.createElement("div");
+
+    const username = document.createElement("p");
+
+    userContainer.setAttribute("class", "active-user");
+    userContainer.setAttribute("id", socketId);
+    username.setAttribute("class", "username");
+    username.innerHTML = `user : ${socketId}`;
+
+    userContainer.appendChild(username);
+
+    userContainer.addEventListener("click", () => {
+        unselecteed();
+        userContainer.setAttribute(
+            "class",
+            "active-user active-user--selected"
+        );
+        const talkingWithInfo =
+            document.getElementById("talking-with-info");
+        talkingWithInfo.innerHTML = `call by user : ${socketId}`;
+        callUser(socketId);
+    });
+     return userContainer;
+ }
+
+ function updateuserList(users){
     const activeUserContainer = document.getElementById(
         "active-user-container"
     );
-
+        
     users.forEach((socketId) => {
         const userExist = document.getElementById(socketId);
 
         if (!userExist) {
-            const userContainer = document.createElement("div");
-
-            const username = document.createElement("p");
-
-            userContainer.setAttribute("class", "active-user");
-            userContainer.setAttribute("id", socketId);
-            username.setAttribute("class", "username");
-            username.innerHTML = `user : ${socketId}`;
-
-            userContainer.appendChild(username);
-
-            userContainer.addEventListener("click", () => {
-                userContainer.setAttribute(
-                    "class",
-                    "active-user active-user--selected"
-                );
-                const talkingWithInfo =
-                    document.getElementById("talking-with-info");
-                talkingWithInfo.innerHTML = `call by user${socketId}`;
-                callUser(socketId);
-            });
-
+           const userContainer=createuser(socketId);
             activeUserContainer.appendChild(userContainer);
         }
     });
+ }
+socket.on("update-user-list", ({ users }) => {
+ updateuserList(users);
 });
 
 socket.on("remove-user", ({ socketId }) => {
@@ -105,7 +125,7 @@ socket.on("answer-made", async (data) => {
 
 socket.on("call-rejected", (data) => {
     alert(`call user with by id:${data.socket} `);
-    //Unselect active user
+    unselecteed();
 });
 
 peerConnection.ontrack = function ({ streams: [stream] }) {

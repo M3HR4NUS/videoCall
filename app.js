@@ -13,6 +13,8 @@ app.use(express.static("public"));
 
 let activeUsers = [];
 
+
+
 io.on("connection", (socket) => {
     const socketExist = activeUsers.find(
         (socketExist) => socketExist === socket.id
@@ -27,7 +29,9 @@ io.on("connection", (socket) => {
             ),
         });
 
+     
         socket.broadcast.emit("update-user-list", { users: [socket.id] });
+
     }
 
     socket.on("call-user", (data) => {
